@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        .news {
+            margin-top: 20px;
+        }
+
+        .news-link {
+            display: block;
+            text-decoration: none;
+            color: black;
+            font-size: 18px;
+        }
+
+        details {
+            margin: 10px;
+        }
+
+        summary {
+            cursor: pointer;
+            padding: 10px;
+            font-family: "Space Mono", monospace;
+            font-size: 18px;
+            transition: .3s;
+            border-bottom: 2px solid;
+            user-select: none;
+            outline: none;
+        }
+
+        details[open]>summary {
+            color: red;
+        }
+
+        .but {
+            padding: 7px 10px;
+            background-color: #333;
+            cursor: pointer;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 5px;
+        }
+    </style>
+    <title>Document</title>
+</head>
+
+<body>
+
+    <input type="button" id="show-news" value="Show news">
+
+    <div class="news">
+
+    </div>
+
+    <script type="text/javascript">
+
+        let showButton = document.getElementById('show-news');
+        showButton.onclick = getNews;
+
+        // Запрашиваем список новостей
+        function getNews() {
+            let news = document.querySelector('.news');
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", "https://st.zakon.kz/rss/rss_all.xml", true);
+
+            // Значение responseType, если указано, должно быть пустой строкой или "document"
+            xhr.responseType = 'document';
+
+            // overrideMimeType() может быть использован, чтобы заставить ответ обрабатываться как XML
+            xhr.overrideMimeType('text/xml');
+
+            xhr.onload = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log(xhr.responseXML); // объект DOM Document
+                    // Когда значение responseType равно "document" и запрос выполнен асинхронно, ответ парсится как text/html stream.
+                    let doc = xhr.responseXML;
+                    let items = doc.getElementsByTagName('item');
+
+                    for (i = 0; i < items.length; i++) {
+                        let title = items[i].getElementsByTagName('title')[0].childNodes[0].nodeValue;
+                        let link = items[i].getElementsByTagName('link')[0].childNodes[0].nodeValue;
+                        let date = items[i].getElementsByTagName('pubDate')[0].childNodes[0].nodeValue;
+                        let description = items[i].getElementsByTagName('description')[0].childNodes[0].nodeValue;
+                        createDetails(title, link, date, description);
+                    }
+                } else {
+                    console.log(xhr.statusText); // Сообщение о состоянии ответа HTTP (строка): обычно OK для 200, Not Found для 404, Forbidden для 403, и так далее.
+                }
+            };
+
+            xhr.send(null); // При POST включается содержание запроса
+
+            // Создание тэга <details> и его добавление к элементу <div class="news">
+            function createDetails(title, link, date, description) {
+                let details = document.createElement('details');
+                let summary = document.createElement('summary');
+                summary.innerHTML = title;
+                let dat = document.createElement('p');
+                dat.innerHTML = date;
+                let desc = document.createElement('p');
+                desc.innerHTML = description;
+                let but = document.createElement('button');
+                but.innerHTML = 'Перейти на сайт';
+                but.className = 'but';
+                but.onclick = () => { window.open(link, '_blank'); };
+                details.appendChild(summary);
+                details.appendChild(dat);
+                details.appendChild(desc);
+                details.appendChild(but);
+                news.appendChild(details);
+            }
+        }
+
+    </script>
+</body>
+
+</html>
